@@ -88,6 +88,8 @@ P.S. You can delete this when you're done too. It's your config now! :)
 -- SECTION 1: OPTIONS
 -- Core Neovim settings, leaders, options, basic keymaps, basic autocmds
 -- ============================================================
+vim.g.cc = "gcc"
+vim.env.CC = "gcc"
 do
   -- Enable faster startup by caching compiled Lua modules
   vim.loader.enable()
@@ -126,7 +128,7 @@ do
 
   -- Enable break indent
   vim.o.breakindent = true
-
+  vim.opt.clipboard = "unnamedplus"
   -- Enable undo/redo changes even after closing and reopening a file
   vim.o.undofile = true
 
@@ -209,7 +211,14 @@ do
     },
   }
 
+  vim.diagnostic.config({
+    virtual_text = true,
+})
+
+  vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float)
+
   vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+  vim.keymap.set('n', '<Tab>', '<cmd>Telescope find_files<cr>', { desc = 'Find Files' })
 
   -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
   -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -695,7 +704,7 @@ do
     -- clangd = {},
     -- gopls = {},
     -- pyright = {},
-    -- rust_analyzer = {},
+    rust_analyzer = {},
     --
     -- Some languages (like typescript) have entire language plugins that can be useful:
     --    https://github.com/pmizio/typescript-tools.nvim
@@ -966,12 +975,12 @@ do
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug'
-  -- require 'kickstart.plugins.indent_line'
-  -- require 'kickstart.plugins.lint'
-  -- require 'kickstart.plugins.autopairs'
+  require 'kickstart.plugins.debug'
+  require 'kickstart.plugins.indent_line'
+  require 'kickstart.plugins.lint'
+  require 'kickstart.plugins.autopairs'
   -- require 'kickstart.plugins.neo-tree'
-  -- require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
+  require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --
@@ -981,3 +990,10 @@ end
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+vim.api.nvim_create_autocmd({ 'InsertLeave', 'TextChanged' }, {
+  callback = function()
+    if vim.bo.modified and vim.bo.buftype == '' then
+      vim.cmd.write()
+    end
+  end,
+})
